@@ -41,14 +41,12 @@ class AI(RealtimeAI):
         
         new_square = chillncode.is_new_square()
         if new_square == True:
-            print('\nis_new_square\n')
             chillncode.update_curr_square_index()
             chillncode.find_next_square()
             chillncode.find_new_reaching_path()
         
         new_square_changed = chillncode.is_next_square_changed()
         if new_square_changed == True:
-            print('\nis_new_square_changed\n')
             chillncode.find_next_square()
             chillncode.find_new_reaching_path()
         
@@ -57,6 +55,5 @@ class AI(RealtimeAI):
             self.send_command(ActivateWallBreaker())
 
         next_direction = chillncode.next_dir()
-        print(f'\n{next_direction}\n')
         self.send_command(ChangeDirection(next_direction))
             

@@ -89,33 +89,29 @@ class Chillncode():
         for k in range(len(self.squares)):
             square_pos = self.squares[k].position
             sides_num = square_pos[1][0] - square_pos[0][0] + 1
-            near_squares_len = len(self.squares[k].near_squares)
-            reached_near_squares = []
             n = 0
             i_steps = [-1, n, sides_num, n]
             j_steps = [n, sides_num, n, -1]
-            while len(reached_near_squares) != near_squares_len:    
+            
+            for m in range(sides_num):
                 for l in range(4):
                     i = square_pos[0][0] + i_steps[l]
                     j = square_pos[0][1] + j_steps[l]
                     if self.board[i][j] == ECell.AreaWall:
                         continue
+                    
                     near_square_index = self.find_square_index(i, j)
-                    near_square_pos = self.squares[near_square_index].position
-                    reached_count = reached_near_squares.count(near_square_index)
+                    near_entries = self.squares[k].near_squares_entry_pos[near_square_index]
+                    reached_count = near_entries.count([i, j])
                     if reached_count == 0:
-                        while (near_square_pos[0][0] <= i and i <= near_square_pos[1][0]) and (near_square_pos[0][1] <= j and j <= near_square_pos[1][1]):
+                        near_square_pos = self.squares[near_square_index].position
+                        if (near_square_pos[0][0] <= i and i <= near_square_pos[1][0]) and (near_square_pos[0][1] <= j and j <= near_square_pos[1][1]):
                             self.squares[k].near_squares_entry_pos[near_square_index].append([i, j])
-                            if i_steps[l] == n:
-                                i += 1
-                            if j_steps[l] == n:
-                                j += 1
-                            
-                        reached_near_squares.append(near_square_index)
                         
                 n += 1
                 i_steps = [-1, n, sides_num, n]
                 j_steps = [n, sides_num, n, -1]
+
     
     def find_square_index(self, pos_y, pos_x):
         for square in self.squares:
@@ -182,7 +178,7 @@ class Chillncode():
             my_wall = ECell.YellowWall
         
         my_walls = enemy_walls = empty_walls = 0
-        for position in route:
+        for position in route[1:]:
             i, j = position[0], position[1]
             if self.board[i][j] == my_wall:
                 my_walls += 1
@@ -191,18 +187,18 @@ class Chillncode():
             else:
                 enemy_walls += 1
         
-        weight = (empty_walls * 10) + (my_walls * -10) + (enemy_walls * 3)
+        weight = (empty_walls * 10) + (my_walls * -20) + (enemy_walls * 1)
         return weight
     
     def is_route_reachable(self, route):
-        for position in route:
+        for position in route[1:]:
             i, j = position[0], position[1]
             reached_walls = 0
             if self.board[i][j] == ECell.YellowWall or self.board[i][j] == ECell.BlueWall:
                 reached_walls += 1
             
             if reached_walls <= self.agent.wall_breaker_rem_time:
-                return True
+                    return True
             else:
                 if reached_walls < self.agent.health:
                     return True
@@ -215,65 +211,66 @@ class Chillncode():
         agent_pos = [self.agent.position.y, self.agent.position.x]
         for entry_pos in entry_positions:
             all_routes = self.find_all_routes(agent_pos, entry_pos)
-            print('all routes:', all_routes)
             
-            reachable_routes = []
-            for route in all_routes:
-                is_reachable = self.is_route_reachable(route)
-                if is_reachable == True:
-                    reachable_routes.append(route)
+            # reachable_routes = []
+            # for route in all_routes:
+            #     is_reachable = self.is_route_reachable(route)
+            #     if is_reachable == True:
+            #         reachable_routes.append(route)
             
-            routes_lengths = []
-            for route in reachable_routes:
-                routes_lengths.append(len(route))
+            # routes_weights = []
+            # for route in reachable_routes:
+            #     weight = self.find_route_weight(route)
+            #     routes_weights.append(weight)
+            
+            # average = sum(routes_weights) // len(routes_weights)
+            
+            # min_weight, max_weight = 1000, -1000
+            # for weight in routes_weights:
+            #     if weight > max_weight:
+            #         max_weight = weight
+            #     if weight < min_weight:
+            #         min_weight = weight
+            
+            # average = (min_weight + max_weight) // 2
+            # if average < 0:
+            #     average *= -1
                 
-            min_len, max_len = 1000, -1000
-            for length in routes_lengths:
-                if length > max_len:
-                    max_len = length
-                if length < min_len:
-                    min_len = length
+            # index, min_diff = 0, 1000
+            # for weight in routes_weights:
+            #     diff = weight - average
+            #     if diff < 0:
+            #         diff *= -1
+            #     if diff < min_diff:
+            #         index = routes_weights.index(weight)
+            #         min_diff = diff
                     
-            average = (min_len + max_len) // 2
-            square_index, min_diff = 0, 1000
-            for length in routes_lengths:
-                diff = length - average
-                if diff < 0:
-                    diff *= -1
-                if diff < min_diff:
-                    square_index = routes_lengths.index(length)
-                    min_diff = diff
-                    
-            choosed_routes.append(reachable_routes[square_index])
-        
-        print('choosed routes:', choosed_routes)
+            # choosed_routes.append(reachable_routes[index])
+            for route in all_routes:
+                choosed_routes.append(route)
         
         routes_weights = []
         for route in choosed_routes:
             route_weight = self.find_route_weight(route)
             routes_weights.append(route_weight)
         
-        min_weight, max_weight = 1000, -1000
-        for weight in routes_weights:
-            if weight > max_weight:
-                max_weight = weight
-            if weight < min_weight:
-                min_weight = weight
+        min_weight = min(routes_weights)
+        max_weight = max(routes_weights)
         
         average = (min_weight + max_weight) // 2
-        if average < 0:
-            average *= -1
-            
-        index, min_diff = 0, 1000
+        average *= -1 if average < 0 else 1
+        
+        weight_diffs = []            
         for weight in routes_weights:
             diff = weight - average
             if diff < 0:
                 diff *= -1
-            if diff < min_diff:
-                index = routes_weights.index(weight)
-                min_diff = diff
+            weight_diffs.append(diff)
         
-        best_route = choosed_routes[index]
+        min_diff = min(weight_diffs)
+        index = weight_diffs.index(min_diff)
+        
+        best_route = choosed_routes[index]   
         return best_route
     
     def update_curr_square_index(self):
@@ -286,14 +283,7 @@ class Chillncode():
                 self.prev_square_index = self.curr_square_index
                 self.curr_square_index = near_index
                 break
-            
-        print('curr_index:', self.curr_square_index, ':', self.squares[self.curr_square_index].position)
-        print('\tnear_squares:', end = ' ')
-        for near_index in self.squares[self.curr_square_index].near_squares:
-            near_pos = self.squares[near_index].position
-            print(f'{near_index}: {near_pos}', end = '  ')
-        print()
-    
+
     def is_new_square(self):
         curr_square_pos = self.squares[self.curr_square_index].position
         pos1, pos2 = curr_square_pos[0], curr_square_pos[1]
@@ -324,7 +314,7 @@ class Chillncode():
                     else:
                         enemy_walls += 1
             
-            weight = (empty_walls * 10) + (my_walls * -10) + (enemy_walls * 3)
+            weight = (empty_walls * 10) + (my_walls * -20) + (enemy_walls * 1)
             near_squares_weight.append(weight)
         
         curr_square_pos = self.squares[self.curr_square_index].position
@@ -387,9 +377,7 @@ class Chillncode():
             elif self.team_name == "Yellow" and left_index != self.prev_square_index:
                 horizontal_index = left_index
                 horizontal_weight = left_weight
-        
-        print('hori weight:', horizontal_weight, ' hori index:', horizontal_index)
-        print('veri weight:', vertical_weight, 'veri index:', vertical_index)
+
         if horizontal_weight > vertical_weight:
             return horizontal_index
         else:
@@ -397,11 +385,9 @@ class Chillncode():
         
     def find_next_square(self):
         self.next_square_index = self.find_next_square_index()
-        print('\nnext_square:', self.next_square_index, ':', self.squares[self.next_square_index].position)
     
     def find_new_reaching_path(self):
         self.reaching_path = self.find_best_route()
-        print('\nreaching_path: ', self.reaching_path)
         self.reaching_path_index = 1
     
     def is_next_square_changed(self):
