@@ -164,7 +164,7 @@ class Chillncode():
                             k = 0
                     
             vertices[(i, j)].clear()
-            route.pop(len(route) - 1)
+            route.pop(-1)
             
             if len(stack) == 0:
                 loop = False
