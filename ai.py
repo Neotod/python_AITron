@@ -11,7 +11,7 @@ from ks.models import ECell, EDirection, Position
 from ks.commands import ChangeDirection, ActivateWallBreaker
 
 # chillncode imports
-from cnc.chillncode import Chillncode
+from covid.covid import Covid_404
 
 class AI(RealtimeAI):
 
@@ -19,41 +19,42 @@ class AI(RealtimeAI):
         super(AI, self).__init__(world)
 
     def initialize(self):
-        global chillncode
-        chillncode = Chillncode()
-        chillncode.say_welcome()
+        global covid
+        covid = Covid_404()
+        covid.say_welcome()
         
         board = self.world.board
         agent = self.world.agents[self.my_side]
         
-        chillncode.set_requirements(agent, board, self.my_side)
-        chillncode.make_squares()
-        chillncode.find_near_squares()
-        chillncode.set_entry_positions()
-        chillncode.find_next_square()
-        chillncode.find_new_reaching_path()
+        covid.set_requirements(agent, board, self.my_side)
+        covid.make_squares()
+        covid.find_near_squares()
+        covid.set_entry_positions()
+        covid.find_next_square()
+        covid.find_new_reaching_path()
 
     def decide(self):
+        global covid
         board = self.world.board
         agent = self.world.agents[self.my_side]
         
-        chillncode.set_requirements(agent, board, self.my_side)
+        covid.set_requirements(agent, board, self.my_side)
         
-        new_square = chillncode.is_new_square()
+        new_square = covid.is_new_square()
         if new_square == True:
-            chillncode.update_curr_square_index()
-            chillncode.find_next_square()
-            chillncode.find_new_reaching_path()
+            covid.update_curr_square_index()
+            covid.find_next_square()
+            covid.find_new_reaching_path()
         
-        new_square_changed = chillncode.is_next_square_changed()
+        new_square_changed = covid.is_next_square_changed()
         if new_square_changed == True:
-            chillncode.find_next_square()
-            chillncode.find_new_reaching_path()
+            covid.find_next_square()
+            covid.find_new_reaching_path()
         
-        wallbreaker_needed = chillncode.is_wallbreaker_needed()
+        wallbreaker_needed = covid.is_wallbreaker_needed()
         if wallbreaker_needed == True:
             self.send_command(ActivateWallBreaker())
 
-        next_direction = chillncode.next_dir()
+        next_direction = covid.next_dir()
         self.send_command(ChangeDirection(next_direction))
             
